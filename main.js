@@ -2,6 +2,10 @@ rightWristX = 0;
 rightWristY = 0;
 leftWristX = 0;
 leftWristY = 0;
+leftWristScore = 0;
+rightWristScore = 0;
+songStatuspp = '';
+songStatuspotter = '';
 songpp = '';
 songpotter = '';
 function preload() {
@@ -13,25 +17,46 @@ function setup() {
     canvas.center();
     video = createCapture(VIDEO);
     video.hide();
-    posenet = ml5.poseNet(video,modelLoaded)
-    poseNet.on();
+    poseNet = ml5.poseNet(video, modelLoaded)
+    poseNet.on('pose', gotPoses);
+}
+function modelLoaded() {
+    console.log(ml5.version + "Posenet Initalized");
+}
+function gotPoses(results) {
+        if (results.length > 0) {
+            console.log(results);
+            leftWristX = results[0].pose.leftWrist.x;
+            leftWristY = results[0].pose.leftWrist.y;
+            rightWristX = results[0].pose.rightWrist.x;
+            rightWristY = results[0].pose.rightWrist.y;
+            leftWristScore = results[0].pose.keypoints[9].score;
+            rightWristScore = results[0].pose.keypoints[10].score;
+            console.log(leftWristScore)
+        }
 }
 function draw() {
     image(video, 0, 0, 600, 500);
-}
-function modelLoaded(){
-console.log(ml5.version + "Posenet Initalized");
-}
-function gotPoses(error,results){
-if(error){
-console.error();
-}
-else{
-if(results.length > 0){
-leftWristX = results[0].pose.leftWrist.x;
-leftWristY = results[0].pose.leftWrist.y;
-rightWristX = results[0].pose.rightWrist.x;
-rightWristY = results[0].pose.rightWrist.y;
-}
-}
+    songStatuspp = songpp.isPlaying();
+    songStatuspotter = songpotter.isPlaying();
+    fill("#52bbf7");
+    stroke("#0558e8");
+    if (leftWristScore > 0.2) {
+        circle(leftWristX, leftWristY, 20);
+        songpp.stop();
+        if (songStatuspotter == false) {
+            songpotter.play();
+            document.getElementById("d").innerHTML = "Song:Harry Potter Theme Song";
+        }
+    }
+    if (rightWristScore > 0.2) {
+        circle(rightWristX, rightWristY, 20);
+        songpotter.stop();
+        if (songStatuspp == false) {
+            songpp.play();
+            document.getElementById("d").innerHTML = "Song:Peter Pan Song";
+        }
+    }
+
+
 }
